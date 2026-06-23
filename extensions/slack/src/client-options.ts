@@ -43,19 +43,28 @@ function resolveSlackProxyAgent(): Agent | undefined {
   }
 }
 
+function resolveSlackApiUrl(override?: string): string | undefined {
+  const value = override?.trim() || process.env.SLACK_API_URL?.trim();
+  return value || undefined;
+}
+
 export function resolveSlackWebClientOptions(options: WebClientOptions = {}): WebClientOptions {
+  const slackApiUrl = resolveSlackApiUrl(options.slackApiUrl);
   return {
     ...options,
     agent: options.agent ?? resolveSlackProxyAgent(),
     retryConfig: options.retryConfig ?? SLACK_DEFAULT_RETRY_OPTIONS,
+    ...(slackApiUrl ? { slackApiUrl } : {}),
   };
 }
 
 export function resolveSlackWriteClientOptions(options: WebClientOptions = {}): WebClientOptions {
+  const slackApiUrl = resolveSlackApiUrl(options.slackApiUrl);
   return {
     ...options,
     agent: options.agent ?? resolveSlackProxyAgent(),
     retryConfig: options.retryConfig ?? SLACK_WRITE_RETRY_OPTIONS,
     maxRequestConcurrency: options.maxRequestConcurrency ?? 1,
+    ...(slackApiUrl ? { slackApiUrl } : {}),
   };
 }

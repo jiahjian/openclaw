@@ -93,6 +93,14 @@ describe("slack config schema", () => {
     });
   });
 
+  it("accepts a Slack API URL override", () => {
+    expectSlackConfigValid({
+      apiUrl: "http://127.0.0.1:49152/api/",
+      botToken: "xoxb-any",
+      signingSecret: "secret",
+    });
+  });
+
   it("accepts Socket Mode ping/pong transport tuning", () => {
     expectSlackConfigValid({
       mode: "socket",

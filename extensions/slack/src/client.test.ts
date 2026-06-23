@@ -106,6 +106,37 @@ describe("slack web client config", () => {
     expect(options.retryConfig).toBe(customRetry);
   });
 
+  it("uses SLACK_API_URL as the Slack Web API root", () => {
+    const previous = process.env.SLACK_API_URL;
+    process.env.SLACK_API_URL = "http://127.0.0.1:49152/api/";
+    try {
+      expect(resolveSlackWebClientOptions().slackApiUrl).toBe("http://127.0.0.1:49152/api/");
+      expect(resolveSlackWriteClientOptions().slackApiUrl).toBe("http://127.0.0.1:49152/api/");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SLACK_API_URL;
+      } else {
+        process.env.SLACK_API_URL = previous;
+      }
+    }
+  });
+
+  it("prefers explicit Slack API URL over env", () => {
+    const previous = process.env.SLACK_API_URL;
+    process.env.SLACK_API_URL = "http://127.0.0.1:49152/api/";
+    try {
+      expect(
+        resolveSlackWebClientOptions({ slackApiUrl: "http://127.0.0.1:49153/api/" }).slackApiUrl,
+      ).toBe("http://127.0.0.1:49153/api/");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SLACK_API_URL;
+      } else {
+        process.env.SLACK_API_URL = previous;
+      }
+    }
+  });
+
   it("passes merged options into WebClient", () => {
     const customAgent = {} as never;
 
@@ -188,6 +219,23 @@ describe("slack web client config", () => {
 
     expect(second).not.toBe(first);
     expect(WebClient).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps write clients separated by Slack API URL", () => {
+    clearProxyEnvForTest();
+    try {
+      const first = getSlackWriteClient("xoxb-test", {
+        slackApiUrl: "http://127.0.0.1:49152/api/",
+      });
+      const second = getSlackWriteClient("xoxb-test", {
+        slackApiUrl: "http://127.0.0.1:49153/api/",
+      });
+
+      expect(second).not.toBe(first);
+      expect(WebClient).toHaveBeenCalledTimes(2);
+    } finally {
+      restoreProxyEnvForTest();
+    }
   });
 
   it("builds stable non-secret token cache keys", () => {

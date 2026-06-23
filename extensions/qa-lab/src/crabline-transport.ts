@@ -122,6 +122,56 @@ async function postCrablineInbound(params: {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isQaTransportGatewayConfig(value: unknown): value is QaTransportGatewayConfig {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    (value.channels === undefined || isRecord(value.channels)) &&
+    (value.messages === undefined || isRecord(value.messages))
+  );
+}
+
+function toQaTransportGatewayConfig(value: unknown): QaTransportGatewayConfig {
+  if (!isQaTransportGatewayConfig(value)) {
+    throw new Error("Crabline returned an invalid OpenClaw gateway config.");
+  }
+  return value;
+}
+
+function withCrablineGatewayConfigOverrides(params: {
+  adapter: StartedOpenClawCrablineAdapter;
+  config: QaTransportGatewayConfig;
+}): QaTransportGatewayConfig {
+  if (params.adapter.manifest.provider !== "slack") {
+    return params.config;
+  }
+  return {
+    ...params.config,
+    channels: {
+      ...params.config.channels,
+      slack: {
+        ...params.config.channels?.slack,
+        apiUrl: params.adapter.manifest.endpoints.apiRoot,
+      },
+    },
+  };
+}
+
+function createCrablineRuntimeEnvPatch(adapter: StartedOpenClawCrablineAdapter): NodeJS.ProcessEnv {
+  if (adapter.manifest.provider === "whatsapp") {
+    return {
+      WHATSAPP_ACCESS_TOKEN: adapter.manifest.accessToken,
+      WHATSAPP_API_ROOT: adapter.manifest.endpoints.apiRoot,
+    };
+  }
+  return adapter.createChannelDriverSmokeEnv({});
+}
+
 function createCrablineState(params: {
   adapter: StartedOpenClawCrablineAdapter;
   state: QaBusState;
@@ -238,7 +288,10 @@ class QaCrablineTransport extends QaStateBackedTransportAdapter {
   }
 
   createGatewayConfig = (params: { baseUrl: string }): QaTransportGatewayConfig =>
-    this.#adapter.createGatewayConfig(params) as QaTransportGatewayConfig;
+    withCrablineGatewayConfigOverrides({
+      adapter: this.#adapter,
+      config: toQaTransportGatewayConfig(this.#adapter.createGatewayConfig(params)),
+    });
 
   waitReady = (params: {
     gateway: QaTransportGatewayClient;
@@ -256,6 +309,8 @@ class QaCrablineTransport extends QaStateBackedTransportAdapter {
     this.#state.rememberProviderTarget(delivery.to ?? delivery.replyTo, target);
     return delivery;
   };
+
+  createRuntimeEnvPatch = () => createCrablineRuntimeEnvPatch(this.#adapter);
 
   handleAction = async (_params: {
     action: QaTransportActionName;

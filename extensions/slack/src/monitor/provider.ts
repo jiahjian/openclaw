@@ -288,7 +288,7 @@ export async function monitorSlackProvider(opts: MonitorSlackOpts = {}) {
   const typingReaction = slackCfg.typingReaction?.trim() ?? "";
   const mediaMaxBytes = (opts.mediaMaxMb ?? slackCfg.mediaMaxMb ?? 20) * 1024 * 1024;
   const removeAckAfterReply = cfg.messages?.removeAckAfterReply ?? false;
-  const clientOptions = resolveSlackWebClientOptions();
+  const clientOptions = resolveSlackWebClientOptions({ slackApiUrl: slackCfg.apiUrl });
   const { app, receiver, socketModeLogger } = createSlackBoltApp({
     interop: await getSlackBoltInterop(),
     slackMode,
