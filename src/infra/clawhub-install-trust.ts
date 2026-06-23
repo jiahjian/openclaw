@@ -45,6 +45,7 @@ export type ClawHubTrustInstallRecordFields = {
 export type ClawHubTrustAcceptedResult = {
   ok: true;
   trustInstallRecordFields: ClawHubTrustInstallRecordFields;
+  warning?: string;
 };
 
 export type ClawHubTrustFailure = {
@@ -800,15 +801,23 @@ export async function ensureClawHubPackageTrustAcknowledged(params: {
 
   const assessment = assessClawHubTrust(trust);
   const checkedAt = new Date().toISOString();
-  const acceptTrust = (acknowledgedAt?: string): ClawHubTrustAcceptedResult => ({
+  const acceptTrust = (opts?: {
+    acknowledgedAt?: string;
+    warning?: string;
+  }): ClawHubTrustAcceptedResult => ({
     ok: true,
     trustInstallRecordFields: buildClawHubTrustInstallRecordFields({
       trust,
       assessment,
       checkedAt,
-      ...(acknowledgedAt ? { acknowledgedAt } : {}),
+      ...(opts?.acknowledgedAt ? { acknowledgedAt: opts.acknowledgedAt } : {}),
     }),
+    ...(opts?.warning ? { warning: opts.warning } : {}),
   });
+  if (assessment.disposition === "clean") {
+    return acceptTrust();
+  }
+
   const warning = formatClawHubTrustWarning({
     baseUrl: params.baseUrl,
     subject: params.subject,
@@ -818,13 +827,9 @@ export async function ensureClawHubPackageTrustAcknowledged(params: {
     mode: params.mode,
     terminalLinks: params.logger?.terminalLinks,
   });
-  if (assessment.disposition === "clean") {
-    return acceptTrust();
-  }
-
   params.logger?.warn?.(warning);
   if (assessment.disposition === "review-recommended") {
-    return acceptTrust();
+    return acceptTrust({ warning });
   }
   if (assessment.disposition === "blocked") {
     const blockedVerb = params.mode === "update" ? "update" : "install";
@@ -837,7 +842,7 @@ export async function ensureClawHubPackageTrustAcknowledged(params: {
     };
   }
   if (params.acknowledgeClawHubRisk) {
-    return acceptTrust(new Date().toISOString());
+    return acceptTrust({ acknowledgedAt: new Date().toISOString(), warning });
   }
 
   const acknowledged = params.onClawHubRisk
@@ -851,7 +856,7 @@ export async function ensureClawHubPackageTrustAcknowledged(params: {
       })
     : false;
   if (acknowledged) {
-    return acceptTrust(new Date().toISOString());
+    return acceptTrust({ acknowledgedAt: new Date().toISOString(), warning });
   }
   return {
     ok: false,

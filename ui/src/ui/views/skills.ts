@@ -316,7 +316,7 @@ export function renderSkills(props: SkillsProps) {
         ${props.clawhubInstallMessage
           ? html`<div
               class="callout ${props.clawhubInstallMessage.kind === "error" ? "danger" : "success"}"
-              style="margin-top: 8px;"
+              style="margin-top: 8px; white-space: pre-wrap;"
             >
               ${props.clawhubInstallMessage.text}
             </div>`

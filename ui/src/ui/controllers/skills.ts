@@ -113,6 +113,25 @@ function setSkillMessage(state: SkillsState, key: string, message: SkillMessage)
 
 const getErrorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err));
 
+function readClawHubTrustWarning(details: unknown): string | undefined {
+  if (!details || typeof details !== "object") {
+    return undefined;
+  }
+  const warning = (details as { warning?: unknown }).warning;
+  return typeof warning === "string" && warning.trim() ? warning : undefined;
+}
+
+function getClawHubTrustWarningFromError(err: unknown): string | undefined {
+  if (!err || typeof err !== "object" || !("details" in err)) {
+    return undefined;
+  }
+  return readClawHubTrustWarning((err as { details?: unknown }).details);
+}
+
+function formatClawHubInstallMessage(message: string, warning?: string): string {
+  return warning ? `${message}\n\n${warning}` : message;
+}
+
 export function clawhubVerdictKey(target: {
   registry: string;
   slug: string;
@@ -563,11 +582,14 @@ export async function installFromClawHub(state: SkillsState, slug: string) {
   state.clawhubInstallSlug = slug;
   state.clawhubInstallMessage = null;
   try {
-    await state.client.request("skills.install", {
-      ...skillsAgentParams(state),
-      source: "clawhub",
-      slug,
-    });
+    const result = await state.client.request<{ message?: string; warning?: string }>(
+      "skills.install",
+      {
+        ...skillsAgentParams(state),
+        source: "clawhub",
+        slug,
+      },
+    );
     if (!isSkillsAgentScopeCurrent(state, agentScope)) {
       return;
     }
@@ -575,10 +597,19 @@ export async function installFromClawHub(state: SkillsState, slug: string) {
     if (!isSkillsAgentScopeCurrent(state, agentScope)) {
       return;
     }
-    state.clawhubInstallMessage = { kind: "success", text: `Installed ${slug}` };
+    state.clawhubInstallMessage = {
+      kind: "success",
+      text: formatClawHubInstallMessage(result?.message ?? `Installed ${slug}`, result?.warning),
+    };
   } catch (err) {
     if (isSkillsAgentScopeCurrent(state, agentScope)) {
-      state.clawhubInstallMessage = { kind: "error", text: getErrorMessage(err) };
+      state.clawhubInstallMessage = {
+        kind: "error",
+        text: formatClawHubInstallMessage(
+          getErrorMessage(err),
+          getClawHubTrustWarningFromError(err),
+        ),
+      };
     }
   } finally {
     if (isSkillsAgentScopeCurrent(state, agentScope) && state.clawhubInstallSlug === slug) {

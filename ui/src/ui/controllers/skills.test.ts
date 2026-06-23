@@ -766,6 +766,48 @@ describe("skill mutations", () => {
     });
   });
 
+  it("shows ClawHub trust warnings returned by successful skill installs", async () => {
+    const { state, request } = createState();
+    request.mockImplementation(async (method: string) => {
+      if (method === "skills.install") {
+        return {
+          message: "Installed github@1.2.3",
+          warning: "REVIEW RECOMMENDED - ClawHub has not completed a fresh clean check",
+        };
+      }
+      return {};
+    });
+
+    await installFromClawHub(state, "github");
+
+    expect(state.clawhubInstallMessage).toEqual({
+      kind: "success",
+      text:
+        "Installed github@1.2.3\n\n" +
+        "REVIEW RECOMMENDED - ClawHub has not completed a fresh clean check",
+    });
+  });
+
+  it("shows ClawHub trust warnings from failed skill install error details", async () => {
+    const { state, request } = createState();
+    const error = new Error("ClawHub blocked this release; install was not started.") as Error & {
+      details?: unknown;
+    };
+    error.details = {
+      warning: "BLOCKED - ClawHub flagged this release as malicious",
+    };
+    request.mockRejectedValue(error);
+
+    await installFromClawHub(state, "github");
+
+    expect(state.clawhubInstallMessage).toEqual({
+      kind: "error",
+      text:
+        "ClawHub blocked this release; install was not started.\n\n" +
+        "BLOCKED - ClawHub flagged this release as malicious",
+    });
+  });
+
   it.each([
     {
       name: "legacy install",

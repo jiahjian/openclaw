@@ -118,6 +118,25 @@ function respondSkillWorkshopError(respond: RespondFn, err: unknown) {
   respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, formatErrorMessage(err)));
 }
 
+function buildClawHubTrustErrorDetails(result: {
+  code?: string;
+  warning?: string;
+}): { clawhubTrustCode?: string; warning?: string } | undefined {
+  if (!result.code && !result.warning) {
+    return undefined;
+  }
+  return {
+    ...(result.code ? { clawhubTrustCode: result.code } : {}),
+    ...(result.warning ? { warning: result.warning } : {}),
+  };
+}
+
+function collectClawHubTrustWarnings(results: Array<{ warning?: string }>): string[] {
+  return results
+    .map((result) => normalizeOptionalString(result.warning))
+    .filter((warning): warning is string => Boolean(warning));
+}
+
 function buildRevisionAgentInstruction(proposal: Awaited<ReturnType<typeof inspectSkillProposal>>) {
   if (!proposal) {
     return "";
@@ -547,6 +566,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
         force: Boolean(p.force),
         config: cfg,
       });
+      const errorDetails = result.ok ? undefined : buildClawHubTrustErrorDetails(result);
       respond(
         result.ok,
         result.ok
@@ -559,9 +579,16 @@ export const skillsHandlers: GatewayRequestHandlers = {
               slug: result.slug,
               version: result.version,
               targetDir: result.targetDir,
+              ...(result.warning ? { warning: result.warning } : {}),
             }
           : result,
-        result.ok ? undefined : errorShape(ErrorCodes.UNAVAILABLE, result.error),
+        result.ok
+          ? undefined
+          : errorShape(
+              ErrorCodes.UNAVAILABLE,
+              result.error,
+              errorDetails ? { details: errorDetails } : undefined,
+            ),
       );
       return;
     }
@@ -660,6 +687,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
         config: resolved.cfg,
       });
       const errors = results.filter((result) => !result.ok);
+      const warnings = collectClawHubTrustWarnings(results);
       respond(
         errors.length === 0,
         {
@@ -672,7 +700,12 @@ export const skillsHandlers: GatewayRequestHandlers = {
         },
         errors.length === 0
           ? undefined
-          : errorShape(ErrorCodes.UNAVAILABLE, errors.map((result) => result.error).join("; ")),
+          : errorShape(ErrorCodes.UNAVAILABLE, errors.map((result) => result.error).join("; "), {
+              details: {
+                results,
+                ...(warnings.length > 0 ? { warnings } : {}),
+              },
+            }),
       );
       return;
     }
