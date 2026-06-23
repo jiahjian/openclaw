@@ -2486,7 +2486,7 @@ describe("updateNpmInstalledPlugins", () => {
       error:
         "Update cancelled; rerun with --acknowledge-clawhub-risk to continue after reviewing the warning.",
       warning:
-        "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n│ • Finding: suspicious payload strings │\n╰───────────────────────────────────────────────────────────────────────╯",
+        "╭─ WARNING - ClawHub found security risks in this release ─╮\n│ • Finding: suspicious payload strings │\n╰───────────────────────────────────────────────────────────────────────╯",
     });
     const installPath = createInstalledPackageDir({
       name: "demo",
@@ -2536,7 +2536,7 @@ describe("updateNpmInstalledPlugins", () => {
         code: "clawhub_risk_acknowledgement_required",
         currentVersion: "1.2.3",
         warning:
-          "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n│ • Finding: suspicious payload strings │\n╰───────────────────────────────────────────────────────────────────────╯",
+          "╭─ WARNING - ClawHub found security risks in this release ─╮\n│ • Finding: suspicious payload strings │\n╰───────────────────────────────────────────────────────────────────────╯",
         message:
           "Skipped demo ClawHub update: Update cancelled; rerun with --acknowledge-clawhub-risk to continue after reviewing the warning. Existing installed plugin left unchanged.",
       },
@@ -4759,7 +4759,7 @@ describe("syncPluginsForUpdateChannel", () => {
       ok: false,
       code: "archive_integrity_mismatch",
       error: "ClawHub ClawPack integrity mismatch.",
-      warning: "REVIEW REQUIRED\nSecurity scan: suspicious",
+      warning: "WARNING\nSecurity scan: suspicious",
     });
     const config: OpenClawConfig = {
       channels: {
@@ -4796,7 +4796,7 @@ describe("syncPluginsForUpdateChannel", () => {
     expect(installPluginFromNpmSpecMock).not.toHaveBeenCalled();
     expect(result.changed).toBe(false);
     expect(result.config).toBe(config);
-    expect(result.summary.warnings).toEqual(["REVIEW REQUIRED\nSecurity scan: suspicious"]);
+    expect(result.summary.warnings).toEqual(["WARNING\nSecurity scan: suspicious"]);
     expect(result.summary.errors).toEqual([
       "Failed to update legacy-chat: ClawHub ClawPack integrity mismatch. (ClawHub clawhub:legacy-chat@2026.5.1-beta.2).",
     ]);

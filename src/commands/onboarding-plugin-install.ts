@@ -679,7 +679,7 @@ function logInstallWarningWithLineBreaks(runtime: RuntimeEnv, message: string): 
 }
 
 function isReviewRequiredClawHubTrustWarning(message: string): boolean {
-  return message.includes("REVIEW REQUIRED - ClawHub");
+  return message.includes("WARNING - ClawHub found security risks");
 }
 
 function isClawHubTrustWarning(message: string): boolean {

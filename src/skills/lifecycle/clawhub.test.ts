@@ -411,8 +411,8 @@ describe("skills-clawhub", () => {
       throw new Error("expected suspicious skill install failure");
     }
     expect(result.error).toContain("--acknowledge-clawhub-risk");
-    expect(warnings.join("\n")).toContain("REVIEW REQUIRED");
-    expect(warnings.join("\n")).toContain("A skill can change agent instructions");
+    expect(warnings.join("\n")).toContain("WARNING - ClawHub found security risks");
+    expect(warnings.join("\n")).toContain("large instruction/tool-use blast radius");
     expect(downloadClawHubSkillArchiveUrlMock).not.toHaveBeenCalled();
   });
 
@@ -1218,6 +1218,9 @@ describe("skills-clawhub", () => {
     ]);
     expect(warnings.join("\n")).toContain(
       "Latest skill version is marked malicious; OpenClaw will not download it.",
+    );
+    expect(warnings.join("\n")).toContain(
+      "Uninstall the installed skill unless you have independently reviewed it.",
     );
     expect(warnings.join("\n")).not.toContain("Choose a different version");
     expect(downloadClawHubSkillArchiveUrlMock).not.toHaveBeenCalled();

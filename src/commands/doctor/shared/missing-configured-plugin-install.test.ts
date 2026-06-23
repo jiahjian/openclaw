@@ -2974,7 +2974,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
       },
     };
     const reviewNotice =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
     mocks.loadInstalledPluginIndexInstallRecords.mockResolvedValue(records);

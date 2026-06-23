@@ -240,7 +240,7 @@ function isClawHubTrustNotice(message: string): boolean {
   return (
     trimmed.startsWith("ClawHub trust warning ") ||
     trimmed.startsWith("╭─ REVIEW RECOMMENDED - ClawHub ") ||
-    trimmed.startsWith("╭─ REVIEW REQUIRED - ClawHub ") ||
+    trimmed.startsWith("╭─ WARNING - ClawHub found security risks ") ||
     trimmed.startsWith("╭─ BLOCKED - ClawHub ")
   );
 }

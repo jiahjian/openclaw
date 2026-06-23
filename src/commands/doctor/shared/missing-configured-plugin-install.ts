@@ -188,7 +188,7 @@ function isClawHubReviewNotice(message: string): boolean {
   const trimmed = message.trimStart();
   return (
     trimmed.startsWith("╭─ REVIEW RECOMMENDED - ClawHub ") ||
-    trimmed.startsWith("╭─ REVIEW REQUIRED - ClawHub ")
+    trimmed.startsWith("╭─ WARNING - ClawHub found security risks ")
   );
 }
 

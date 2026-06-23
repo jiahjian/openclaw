@@ -414,7 +414,7 @@ function formatClawHubTrustEvidenceLines(params: {
         addLine("Scanner:", linked("malicious behavior detected", securityLink));
         break;
       case "static:malicious":
-        addLine("Static analysis:", linked("malicious behavior detected", securityLink));
+        addLine("Scanner:", linked("malicious behavior detected", securityLink));
         break;
       case "payload_strings":
         addLine("Finding:", linked("suspicious payload strings", securityLink));
@@ -487,12 +487,15 @@ function formatClawHubTrustWarning(params: {
   const noun = params.subject.kind;
   if (params.assessment.disposition === "blocked") {
     const malicious = hasMaliciousClawHubTrustSignal(params.trust);
-    const blockedAction =
+    const blockedActionLines =
       params.mode === "update"
         ? malicious
-          ? `Latest ${noun} version is marked malicious; OpenClaw will not download it.`
-          : `Latest ${noun} version is blocked by ClawHub; OpenClaw will not download it.`
-        : `OpenClaw will not install this ${noun} release from ClawHub.`;
+          ? [
+              `Latest ${noun} version is marked malicious; OpenClaw will not download it.`,
+              `Uninstall the installed ${noun} unless you have independently reviewed it.`,
+            ]
+          : [`Latest ${noun} version is blocked by ClawHub; OpenClaw will not download it.`]
+        : [`OpenClaw will not install this ${noun} release from ClawHub.`];
     const blockedTitle = malicious
       ? "BLOCKED - ClawHub flagged this release as malicious"
       : "BLOCKED - ClawHub blocked this release";
@@ -502,7 +505,7 @@ function formatClawHubTrustWarning(params: {
         [
           ...evidenceLines,
           "",
-          blockedAction,
+          ...blockedActionLines,
           "Review the ClawHub security details or contact the package maintainer if you believe this is wrong.",
         ],
         params.assessment.disposition,
@@ -513,11 +516,11 @@ function formatClawHubTrustWarning(params: {
   if (params.assessment.disposition === "review-required") {
     const riskContext =
       params.subject.kind === "plugin"
-        ? "A plugin can execute code on this machine and access OpenClaw data, credentials, tools, and configured services."
-        : "A skill can change agent instructions, influence tool use, and may trigger managed dependency installs.";
+        ? "This plugin is not marked malicious, but ClawHub found security findings or a large local system blast radius."
+        : "This skill is not marked malicious, but ClawHub found security findings or a large instruction/tool-use blast radius.";
     return [
       renderClawHubTrustBox(
-        "REVIEW REQUIRED - ClawHub flagged this release for security review",
+        "WARNING - ClawHub found security risks in this release",
         [
           ...evidenceLines,
           "",

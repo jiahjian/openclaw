@@ -1863,7 +1863,7 @@ describe("update-cli", () => {
 
   it("includes acknowledged review-required ClawHub trust warnings in json post-core plugin output", async () => {
     const trustWarning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "│ • Finding:           suspicious payload strings                       │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
@@ -1902,7 +1902,7 @@ describe("update-cli", () => {
 
   it("includes failed ClawHub sync trust warnings in json post-core plugin output", async () => {
     const trustWarning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "│ • Finding:           suspicious payload strings                       │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
@@ -1932,7 +1932,7 @@ describe("update-cli", () => {
 
   it("does not print duplicate failed ClawHub sync trust warnings in human post-core output", async () => {
     const trustWarning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "│ • Finding:           suspicious payload strings                       │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
@@ -1962,7 +1962,7 @@ describe("update-cli", () => {
 
   it("does not print duplicate ClawHub update trust warnings in human post-core output", async () => {
     const trustWarning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "│ • Finding:           suspicious payload strings                       │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
@@ -2113,7 +2113,7 @@ describe("update-cli", () => {
 
   it("marks unacknowledged ClawHub risk skips as post-update warnings", async () => {
     const trustWarning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "│ • Finding:           suspicious payload strings                       │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
@@ -5836,7 +5836,7 @@ describe("update-cli", () => {
   it("prints ClawHub risk warnings before interactive post-update acknowledgement prompts", async () => {
     const tempDir = createCaseDir("openclaw-update");
     const warning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
     mockPackageInstallStatus(tempDir);
@@ -5878,7 +5878,7 @@ describe("update-cli", () => {
   it("does not duplicate ClawHub risk warnings already printed before prompts", async () => {
     const tempDir = createCaseDir("openclaw-update");
     const warning =
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮\n" +
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
     mockPackageInstallStatus(tempDir);

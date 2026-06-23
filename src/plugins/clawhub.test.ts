@@ -499,6 +499,9 @@ describe("installPluginFromClawHub", () => {
     expect(warning).toContain(
       "Latest plugin version is marked malicious; OpenClaw will not download it.",
     );
+    expect(warning).toContain(
+      "Uninstall the installed plugin unless you have independently reviewed it.",
+    );
     expect(warning).not.toContain("Choose a different version");
     expect(warning).not.toContain("/security/static-analysis");
     expect(warning).not.toContain("/security/virustotal");
@@ -568,9 +571,9 @@ describe("installPluginFromClawHub", () => {
 
     const failure = expectInstallFailure(result);
     expect(failure.code).toBe(CLAWHUB_INSTALL_ERROR_CODE.CLAWHUB_RISK_ACKNOWLEDGEMENT_REQUIRED);
-    expect(failure.warning).toContain("REVIEW REQUIRED");
+    expect(failure.warning).toContain("WARNING - ClawHub found security risks");
     expect(failure.warning).toContain("Security scan   not-run");
-    expect(failure.warning).toContain("A plugin can execute code on this machine");
+    expect(failure.warning).toContain("large local system blast radius");
     expect(failure.warning).toContain("before installing");
     expect(failure.warning).not.toContain("blockedFromDownload=false");
     expect(downloadClawHubPackageArchiveMock).not.toHaveBeenCalled();
@@ -604,7 +607,7 @@ describe("installPluginFromClawHub", () => {
 
     const failure = expectInstallFailure(result);
     expect(failure.code).toBe(CLAWHUB_INSTALL_ERROR_CODE.CLAWHUB_RISK_ACKNOWLEDGEMENT_REQUIRED);
-    expect(failure.warning).toContain("REVIEW REQUIRED");
+    expect(failure.warning).toContain("WARNING - ClawHub found security risks");
     expect(failure.warning).toContain("security scan status is missing");
     expect(downloadClawHubPackageArchiveMock).not.toHaveBeenCalled();
     expect(installPluginFromArchiveMock).not.toHaveBeenCalled();
@@ -954,7 +957,7 @@ describe("installPluginFromClawHub", () => {
 
     const failure = expectInstallFailure(result);
     expect(failure.code).toBe(CLAWHUB_INSTALL_ERROR_CODE.CLAWHUB_RISK_ACKNOWLEDGEMENT_REQUIRED);
-    expect(failure.warning).toContain("REVIEW REQUIRED");
+    expect(failure.warning).toContain("WARNING - ClawHub found security risks");
     expect(failure.warning).toContain("Security scan   pending");
     expect(failure.warning).toContain("scan pending");
     expect(failure.warning).not.toContain("blockedFromDownload=false");

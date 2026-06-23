@@ -551,7 +551,7 @@ describe("ensureOnboardingPluginInstalled", () => {
 
   it("renders ClawHub trust warnings with line breaks before prompting during onboarding", async () => {
     const warning = [
-      "╭─ REVIEW REQUIRED - ClawHub flagged this release for security review ─╮",
+      "╭─ WARNING - ClawHub found security risks in this release ─╮",
       "│ • Security scan: suspicious                                           │",
       "│ Review before installing.                                             │",
       "╰───────────────────────────────────────────────────────────────────────╯",
