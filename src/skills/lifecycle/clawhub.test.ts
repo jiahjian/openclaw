@@ -391,6 +391,9 @@ describe("skills-clawhub", () => {
           requestedVersion: "1.0.0",
           slug: "agentreceipt",
           version: "1.0.0",
+          skillUrl: "https://clawhub.ai/acme/skills/agentreceipt",
+          securityAuditUrl:
+            "https://clawhub.ai/acme/skills/agentreceipt/security-audit?version=1.0.0",
           security: {
             status: "suspicious",
             passed: false,
@@ -413,7 +416,13 @@ describe("skills-clawhub", () => {
     }
     expect(result.error).toContain("--acknowledge-clawhub-risk");
     expect(result.warning).toContain("WARNING - ClawHub found security risks");
+    expect(result.warning).toContain(
+      "https://clawhub.ai/acme/skills/agentreceipt/security-audit?version=1.0.0",
+    );
     expect(warnings.join("\n")).toContain("WARNING - ClawHub found security risks");
+    expect(warnings.join("\n")).toContain(
+      "https://clawhub.ai/acme/skills/agentreceipt/security-audit?version=1.0.0",
+    );
     expect(warnings.join("\n")).toContain("large instruction/tool-use blast radius");
     expect(downloadClawHubSkillArchiveUrlMock).not.toHaveBeenCalled();
   });

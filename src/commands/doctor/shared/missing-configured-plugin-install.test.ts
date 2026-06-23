@@ -363,6 +363,36 @@ describe("repairMissingConfiguredPluginInstalls", () => {
   });
 
   it("uses an explicit ClawHub install spec before npm", async () => {
+    const reviewNotice =
+      "╭─ REVIEW RECOMMENDED - ClawHub has not completed a fresh clean check ─╮\n" +
+      "│ • Status:            security scan is pending                         │\n" +
+      "╰───────────────────────────────────────────────────────────────────────╯";
+    const coloredReviewNotice = `\u001b[33m${reviewNotice}\u001b[39m`;
+    mocks.installPluginFromClawHub.mockImplementationOnce(
+      async (params: { logger?: { warn?: (message: string) => void } }) => {
+        params.logger?.warn?.(coloredReviewNotice);
+        return {
+          ok: true,
+          pluginId: "matrix",
+          targetDir: "/tmp/openclaw-plugins/matrix",
+          version: "1.2.3",
+          clawhub: {
+            source: "clawhub",
+            clawhubUrl: "https://clawhub.ai",
+            clawhubPackage: "@openclaw/plugin-matrix",
+            clawhubFamily: "code-plugin",
+            clawhubChannel: "official",
+            version: "1.2.3",
+            integrity: "sha256-clawhub",
+            resolvedAt: "2026-05-01T00:00:00.000Z",
+            clawpackSha256: "0".repeat(64),
+            clawpackSpecVersion: 1,
+            clawpackManifestSha256: "1".repeat(64),
+            clawpackSize: 1234,
+          },
+        };
+      },
+    );
     mocks.listChannelPluginCatalogEntries.mockReturnValue([
       {
         id: "matrix",
@@ -396,6 +426,8 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     expect(result.changes).toEqual([
       'Installed missing configured plugin "matrix" from clawhub:@openclaw/plugin-matrix@stable.',
     ]);
+    expect(result.notices).toContain(reviewNotice);
+    expect(result.notices?.[0]).not.toContain("\u001b");
     expect(result.warnings).toStrictEqual([]);
   });
 

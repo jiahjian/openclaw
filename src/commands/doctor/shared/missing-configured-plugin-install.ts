@@ -1118,7 +1118,7 @@ async function installCandidate(params: {
       mode: params.mode === "update" || existingClawHubPackagePath ? "update" : "install",
       logger: {
         terminalLinks: false,
-        warn: (message) => warnings.push(message),
+        warn: (message) => warnings.push(stripAnsi(message)),
       },
       ...(params.acknowledgeClawHubRisk ? { acknowledgeClawHubRisk: true } : {}),
       ...(params.onClawHubRisk ? { onClawHubRisk: params.onClawHubRisk } : {}),
