@@ -750,7 +750,7 @@ async function sendMessageSlackQueuedInner(params: {
   blocks?: (Block | KnownBlock)[];
 }): Promise<SlackSendResult> {
   const { opts, cfg, account, token, recipient, blocks, trimmedMessage } = params;
-  const client = opts.client ?? getSlackWriteClient(token, { slackApiUrl: account.config.apiUrl });
+  const client = opts.client ?? getSlackWriteClient(token);
   const identity = resolveSlackSendIdentity({
     accountId: account.accountId,
     explicit: opts.identity,

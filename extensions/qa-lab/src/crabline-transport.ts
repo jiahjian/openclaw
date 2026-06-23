@@ -143,25 +143,6 @@ function toQaTransportGatewayConfig(value: unknown): QaTransportGatewayConfig {
   return value;
 }
 
-function withCrablineGatewayConfigOverrides(params: {
-  adapter: StartedOpenClawCrablineAdapter;
-  config: QaTransportGatewayConfig;
-}): QaTransportGatewayConfig {
-  if (params.adapter.manifest.provider !== "slack") {
-    return params.config;
-  }
-  return {
-    ...params.config,
-    channels: {
-      ...params.config.channels,
-      slack: {
-        ...params.config.channels?.slack,
-        apiUrl: params.adapter.manifest.endpoints.apiRoot,
-      },
-    },
-  };
-}
-
 function createCrablineRuntimeEnvPatch(adapter: StartedOpenClawCrablineAdapter): NodeJS.ProcessEnv {
   if (adapter.manifest.provider === "whatsapp") {
     return {
@@ -288,10 +269,7 @@ class QaCrablineTransport extends QaStateBackedTransportAdapter {
   }
 
   createGatewayConfig = (params: { baseUrl: string }): QaTransportGatewayConfig =>
-    withCrablineGatewayConfigOverrides({
-      adapter: this.#adapter,
-      config: toQaTransportGatewayConfig(this.#adapter.createGatewayConfig(params)),
-    });
+    toQaTransportGatewayConfig(this.#adapter.createGatewayConfig(params));
 
   waitReady = (params: {
     gateway: QaTransportGatewayClient;

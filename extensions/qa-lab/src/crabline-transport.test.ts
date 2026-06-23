@@ -72,7 +72,6 @@ describe("crabline transport", () => {
         expect(transport.createGatewayConfig({ baseUrl: "http://127.0.0.1:1" })).toMatchObject({
           channels: {
             slack: {
-              apiUrl: expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\/api\/$/u),
               botToken: "xoxb-crabline-slack-token",
               enabled: true,
               mode: "http",

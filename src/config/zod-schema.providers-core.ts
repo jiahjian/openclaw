@@ -971,7 +971,6 @@ export const SlackAccountSchema = z
     relay: SlackRelaySchema.optional(),
     signingSecret: SecretInputSchema.optional().register(sensitive),
     webhookPath: z.string().optional(),
-    apiUrl: z.string().url().optional(),
     capabilities: SlackCapabilitiesSchema.optional(),
     execApprovals: z
       .object({

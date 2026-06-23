@@ -162,8 +162,6 @@ export type SlackAccountConfig = {
   signingSecret?: SecretInput;
   /** Slack Events API webhook path (default: /slack/events). */
   webhookPath?: string;
-  /** Optional Slack Web API root override, used by Crabline fake provider tests. */
-  apiUrl?: string;
   /** Optional provider capability tags used for agent/runtime guidance. */
   capabilities?: SlackCapabilitiesConfig;
   /** Slack-native exec approval delivery + approver authorization. */
