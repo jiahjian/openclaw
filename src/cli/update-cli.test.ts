@@ -1900,6 +1900,44 @@ describe("update-cli", () => {
     expect(pluginOutcome(jsonOutput)?.status).toBe("updated");
   });
 
+  it("includes colored ClawHub trust warnings in json post-core plugin output", async () => {
+    const trustWarning =
+      "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
+      "│ • Security scan:     suspicious                                      │\n" +
+      "╰───────────────────────────────────────────────────────────────────────╯";
+    const coloredTrustWarning = `\u001b[33m${trustWarning}\u001b[39m`;
+    updateNpmInstalledPlugins.mockImplementationOnce(
+      async (params: {
+        config: OpenClawConfig;
+        logger?: { terminalLinks?: boolean; warn?: (message: string) => void };
+      }) => {
+        expect(params.logger?.terminalLinks).toBe(false);
+        params.logger?.warn?.(coloredTrustWarning);
+        return {
+          changed: true,
+          config: params.config,
+          outcomes: [
+            {
+              pluginId: "demo",
+              status: "updated",
+              currentVersion: "1.2.3",
+              nextVersion: "1.2.4",
+              message: "Updated demo: 1.2.3 -> 1.2.4.",
+            },
+          ],
+        };
+      },
+    );
+    vi.mocked(defaultRuntime.writeJson).mockClear();
+
+    await updateCommand({ json: true, restart: false, acknowledgeClawHubRisk: true });
+
+    const jsonOutput = lastWriteJsonCall() as UpdateRunResult | undefined;
+    expect(jsonOutput?.postUpdate?.plugins?.status).toBe("warning");
+    expect(pluginWarning(jsonOutput)?.reason).toBe(coloredTrustWarning);
+    expect(pluginOutcome(jsonOutput)?.status).toBe("updated");
+  });
+
   it("includes failed ClawHub sync trust warnings in json post-core plugin output", async () => {
     const trustWarning =
       "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +

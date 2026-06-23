@@ -1151,15 +1151,6 @@ export async function installPluginFromClawHub(
   }
   const expectedClawPackSha256 = resolveClawHubClawPackArtifactSha256(versionState.clawpack);
   const canonicalPackageName = detail.package?.name ?? parsed.name;
-  if (!versionState.verification && !expectedClawPackSha256) {
-    return buildClawHubInstallFailure(
-      formatClawHubMissingArtifactMetadataError({
-        packageName: canonicalPackageName,
-        version: versionState.version,
-      }),
-      CLAWHUB_INSTALL_ERROR_CODE.ARTIFACT_UNAVAILABLE,
-    );
-  }
   logClawHubPackageSummary({
     detail,
     version: versionState.version,
@@ -1180,6 +1171,15 @@ export async function installPluginFromClawHub(
   });
   if (!trustResult.ok) {
     return trustResult;
+  }
+  if (!versionState.verification && !expectedClawPackSha256) {
+    return buildClawHubInstallFailure(
+      formatClawHubMissingArtifactMetadataError({
+        packageName: canonicalPackageName,
+        version: versionState.version,
+      }),
+      CLAWHUB_INSTALL_ERROR_CODE.ARTIFACT_UNAVAILABLE,
+    );
   }
   const releaseLabel = formatClawHubReleaseLabel(canonicalPackageName, versionState.version);
 

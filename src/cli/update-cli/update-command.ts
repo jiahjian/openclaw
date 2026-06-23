@@ -8,6 +8,7 @@ import { Writable } from "node:stream";
 import { confirm, isCancel, text } from "@clack/prompts";
 import { isRecord } from "@openclaw/normalization-core/record-coerce";
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
+import { stripAnsi } from "../../../packages/terminal-core/src/ansi.js";
 import { stylePromptMessage } from "../../../packages/terminal-core/src/prompt-style.js";
 import { sanitizeTerminalText } from "../../../packages/terminal-core/src/safe-text.js";
 import { theme } from "../../../packages/terminal-core/src/theme.js";
@@ -236,7 +237,7 @@ type MissingPluginInstallPayload = {
 type PostUpdatePluginWarning = NonNullable<PostCorePluginUpdateResult["warnings"]>[number];
 
 function isClawHubTrustNotice(message: string): boolean {
-  const trimmed = message.trimStart();
+  const trimmed = stripAnsi(message).trimStart();
   return (
     trimmed.startsWith("ClawHub trust warning ") ||
     trimmed.startsWith("╭─ REVIEW RECOMMENDED - ClawHub ") ||
@@ -246,7 +247,7 @@ function isClawHubTrustNotice(message: string): boolean {
 }
 
 function isNonBlockingClawHubTrustNotice(message: string): boolean {
-  const trimmed = message.trimStart();
+  const trimmed = stripAnsi(message).trimStart();
   return (
     trimmed.startsWith("ClawHub trust warning ") ||
     trimmed.startsWith("╭─ REVIEW RECOMMENDED - ClawHub ")

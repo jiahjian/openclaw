@@ -1815,6 +1815,50 @@ describe("installPluginFromClawHub", () => {
     expect(downloadClawHubPackageArchiveMock).not.toHaveBeenCalled();
   });
 
+  it("checks trust before returning artifact-unavailable fallback errors", async () => {
+    fetchClawHubPackageVersionMock.mockResolvedValueOnce({
+      version: {
+        version: "2026.3.22",
+        createdAt: 0,
+        changelog: "",
+        compatibility: {
+          pluginApiRange: ">=2026.3.22",
+          minGatewayVersion: "2026.3.0",
+        },
+      },
+    });
+    fetchClawHubPackageSecurityMock.mockResolvedValueOnce({
+      package: {
+        name: "demo",
+        displayName: "Demo",
+        family: "code-plugin",
+      },
+      release: {
+        version: "2026.3.22",
+      },
+      trust: {
+        scanStatus: "malicious",
+        moderationState: "quarantined",
+        blockedFromDownload: true,
+        reasons: ["scan:malicious"],
+        pending: false,
+        stale: false,
+      },
+    });
+
+    const result = await installPluginFromClawHub({
+      spec: "clawhub:demo",
+      acknowledgeClawHubRisk: true,
+    });
+
+    const failure = expectInstallFailure(result);
+    expect(failure.code).toBe(CLAWHUB_INSTALL_ERROR_CODE.CLAWHUB_DOWNLOAD_BLOCKED);
+    expect(packageSecurityCall().name).toBe("demo");
+    expect(failure.error).toBe("ClawHub blocked this release; install was not started.");
+    expect(failure.warning).toContain("BLOCKED - ClawHub flagged this release as malicious");
+    expect(downloadClawHubPackageArchiveMock).not.toHaveBeenCalled();
+  });
+
   it("rejects ClawHub installs when the version metadata has no archive hash or fallback files[]", async () => {
     fetchClawHubPackageVersionMock.mockResolvedValueOnce({
       version: {
