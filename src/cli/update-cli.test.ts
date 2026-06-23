@@ -1934,7 +1934,8 @@ describe("update-cli", () => {
 
     const jsonOutput = lastWriteJsonCall() as UpdateRunResult | undefined;
     expect(jsonOutput?.postUpdate?.plugins?.status).toBe("warning");
-    expect(pluginWarning(jsonOutput)?.reason).toBe(coloredTrustWarning);
+    expect(pluginWarning(jsonOutput)?.reason).toBe(trustWarning);
+    expect(pluginWarning(jsonOutput)?.reason).not.toContain("\u001b");
     expect(pluginOutcome(jsonOutput)?.status).toBe("updated");
   });
 

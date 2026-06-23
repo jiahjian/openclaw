@@ -2977,13 +2977,14 @@ describe("repairMissingConfiguredPluginInstalls", () => {
       "╭─ WARNING - ClawHub found security risks in this release ─╮\n" +
       "│ • Security scan:     suspicious                                      │\n" +
       "╰───────────────────────────────────────────────────────────────────────╯";
+    const coloredReviewNotice = `\u001b[33m${reviewNotice}\u001b[39m`;
     mocks.loadInstalledPluginIndexInstallRecords.mockResolvedValue(records);
     mocks.updateNpmInstalledPlugins.mockImplementationOnce(
       async (params: {
         logger?: { warn?: (message: string) => void };
         config: Record<string, unknown>;
       }) => {
-        params.logger?.warn?.(reviewNotice);
+        params.logger?.warn?.(coloredReviewNotice);
         return {
           changed: true,
           config: {
@@ -3022,6 +3023,7 @@ describe("repairMissingConfiguredPluginInstalls", () => {
     });
 
     expect(result.notices).toContain(reviewNotice);
+    expect(result.notices?.[0]).not.toContain("\u001b");
     expect(result.warnings).toStrictEqual([]);
   });
 

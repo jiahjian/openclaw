@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { normalizeOptionalLowercaseString } from "@openclaw/normalization-core/string-coerce";
+import { stripAnsi } from "../../../../packages/terminal-core/src/ansi.js";
 import { sanitizeTerminalText } from "../../../../packages/terminal-core/src/safe-text.js";
 import {
   listExplicitlyDisabledChannelIdsForConfig,
@@ -185,7 +186,7 @@ function isActionableClawHubSkippedOutcome(outcome: {
 }
 
 function isClawHubReviewNotice(message: string): boolean {
-  const trimmed = message.trimStart();
+  const trimmed = stripAnsi(message).trimStart();
   return (
     trimmed.startsWith("╭─ REVIEW RECOMMENDED - ClawHub ") ||
     trimmed.startsWith("╭─ WARNING - ClawHub found security risks ")
@@ -1597,7 +1598,7 @@ async function repairMissingPluginInstalls(params: {
         terminalLinks: false,
         warn: (message) => {
           if (isClawHubReviewNotice(message)) {
-            notices.push(message);
+            notices.push(stripAnsi(message));
             return;
           }
           warnings.push(message);

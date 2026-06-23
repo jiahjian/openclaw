@@ -1869,7 +1869,7 @@ export async function updatePluginsAfterCoreUpdate(params: {
       ? isClawHubTrustNotice(message)
       : isNonBlockingClawHubTrustNotice(message);
     if (shouldRecord) {
-      clawHubTrustNotices.add(message);
+      clawHubTrustNotices.add(stripAnsi(message));
     }
   };
   const pluginLogger = {
