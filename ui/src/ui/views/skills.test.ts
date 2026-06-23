@@ -382,6 +382,37 @@ describe("renderSkills", () => {
     expect(onClawHubInstall).toHaveBeenCalledWith("github");
   });
 
+  it("renders ClawHub acknowledgement retry actions", async () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    dialogRestores.push(() => container.remove());
+    const onClawHubInstall = vi.fn();
+
+    render(
+      renderSkills(
+        createProps({
+          clawhubInstallMessage: {
+            kind: "error",
+            text: "REVIEW REQUIRED - ClawHub found suspicious behavior.",
+            acknowledgeSlug: "github",
+          },
+          onClawHubInstall,
+        }),
+      ),
+      container,
+    );
+
+    const retryButton = container.querySelector<HTMLButtonElement>(".callout button");
+    expect(normalizeText(container.querySelector(".callout")!)).toBe(
+      "REVIEW REQUIRED - ClawHub found suspicious behavior. Install anyway",
+    );
+    expect(retryButton).toBeInstanceOf(HTMLButtonElement);
+    retryButton!.click();
+
+    expect(onClawHubInstall).toHaveBeenCalledTimes(1);
+    expect(onClawHubInstall).toHaveBeenCalledWith("github", true);
+  });
+
   it("renders installed ClawHub verdicts and the local Skill Card tab", async () => {
     const container = document.createElement("div");
     document.body.append(container);

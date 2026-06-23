@@ -87,7 +87,11 @@ export type SkillsState = {
   clawhubDetailLoading: boolean;
   clawhubDetailError: string | null;
   clawhubInstallSlug: string | null;
-  clawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
+  clawhubInstallMessage: {
+    kind: "success" | "error";
+    text: string;
+    acknowledgeSlug?: string;
+  } | null;
   clawhubVerdicts: Record<string, ClawHubSkillSecurityVerdict>;
   clawhubVerdictsLoading: boolean;
   clawhubVerdictsError: string | null;
@@ -126,6 +130,18 @@ function getClawHubTrustWarningFromError(err: unknown): string | undefined {
     return undefined;
   }
   return readClawHubTrustWarning((err as { details?: unknown }).details);
+}
+
+function getClawHubTrustCodeFromError(err: unknown): string | undefined {
+  if (!err || typeof err !== "object" || !("details" in err)) {
+    return undefined;
+  }
+  const details = (err as { details?: unknown }).details;
+  if (!details || typeof details !== "object") {
+    return undefined;
+  }
+  const code = (details as { clawhubTrustCode?: unknown }).clawhubTrustCode;
+  return typeof code === "string" && code.trim() ? code : undefined;
 }
 
 function formatClawHubInstallMessage(message: string, warning?: string): string {
@@ -574,7 +590,11 @@ export function closeClawHubDetail(state: SkillsState) {
   state.clawhubDetailLoading = false;
 }
 
-export async function installFromClawHub(state: SkillsState, slug: string) {
+export async function installFromClawHub(
+  state: SkillsState,
+  slug: string,
+  acknowledgeClawHubRisk = false,
+) {
   if (!state.client || !state.connected) {
     return;
   }
@@ -588,6 +608,7 @@ export async function installFromClawHub(state: SkillsState, slug: string) {
         ...skillsAgentParams(state),
         source: "clawhub",
         slug,
+        ...(acknowledgeClawHubRisk ? { acknowledgeClawHubRisk: true } : {}),
       },
     );
     if (!isSkillsAgentScopeCurrent(state, agentScope)) {
@@ -603,12 +624,15 @@ export async function installFromClawHub(state: SkillsState, slug: string) {
     };
   } catch (err) {
     if (isSkillsAgentScopeCurrent(state, agentScope)) {
+      const needsAcknowledgement =
+        getClawHubTrustCodeFromError(err) === "clawhub_risk_acknowledgement_required";
       state.clawhubInstallMessage = {
         kind: "error",
         text: formatClawHubInstallMessage(
           getErrorMessage(err),
           getClawHubTrustWarningFromError(err),
         ),
+        ...(needsAcknowledgement ? { acknowledgeSlug: slug } : {}),
       };
     }
   } finally {

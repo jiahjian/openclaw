@@ -78,7 +78,11 @@ export type SkillsProps = {
   clawhubDetailLoading: boolean;
   clawhubDetailError: string | null;
   clawhubInstallSlug: string | null;
-  clawhubInstallMessage: { kind: "success" | "error"; text: string } | null;
+  clawhubInstallMessage: {
+    kind: "success" | "error";
+    text: string;
+    acknowledgeSlug?: string;
+  } | null;
   onFilterChange: (next: string) => void;
   onAgentChange: (agentId: string) => void;
   onStatusFilterChange: (next: SkillsStatusFilter) => void;
@@ -93,7 +97,7 @@ export type SkillsProps = {
   onClawHubQueryChange: (query: string) => void;
   onClawHubDetailOpen: (slug: string) => void;
   onClawHubDetailClose: () => void;
-  onClawHubInstall: (slug: string) => void;
+  onClawHubInstall: (slug: string, acknowledgeClawHubRisk?: boolean) => void;
 };
 
 type StatusTabDef = { id: SkillsStatusFilter; label: string };
@@ -318,7 +322,23 @@ export function renderSkills(props: SkillsProps) {
               class="callout ${props.clawhubInstallMessage.kind === "error" ? "danger" : "success"}"
               style="margin-top: 8px; white-space: pre-wrap;"
             >
-              ${props.clawhubInstallMessage.text}
+              <div>${props.clawhubInstallMessage.text}</div>
+              ${props.clawhubInstallMessage.acknowledgeSlug
+                ? html`<button
+                    type="button"
+                    class="btn btn--sm"
+                    style="margin-top: 10px;"
+                    ?disabled=${props.clawhubInstallSlug ===
+                    props.clawhubInstallMessage.acknowledgeSlug}
+                    @click=${() =>
+                      props.onClawHubInstall(
+                        props.clawhubInstallMessage?.acknowledgeSlug ?? "",
+                        true,
+                      )}
+                  >
+                    Install anyway
+                  </button>`
+                : nothing}
             </div>`
           : nothing}
         ${renderClawHubResults(props)}

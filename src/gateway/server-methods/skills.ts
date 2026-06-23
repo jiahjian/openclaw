@@ -558,12 +558,14 @@ export const skillsHandlers: GatewayRequestHandlers = {
         slug: string;
         version?: string;
         force?: boolean;
+        acknowledgeClawHubRisk?: boolean;
       };
       const result = await installSkillFromClawHub({
         workspaceDir: workspaceDirRaw,
         slug: p.slug,
         version: p.version,
         force: Boolean(p.force),
+        ...(p.acknowledgeClawHubRisk ? { acknowledgeClawHubRisk: true } : {}),
         config: cfg,
       });
       const errorDetails = result.ok ? undefined : buildClawHubTrustErrorDetails(result);
@@ -656,6 +658,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
         source: "clawhub";
         slug?: string;
         all?: boolean;
+        acknowledgeClawHubRisk?: boolean;
       };
       if (!p.slug && !p.all) {
         respond(
@@ -684,6 +687,7 @@ export const skillsHandlers: GatewayRequestHandlers = {
       const results = await updateSkillsFromClawHub({
         workspaceDir: resolved.workspaceDir,
         slug: p.slug,
+        ...(p.acknowledgeClawHubRisk ? { acknowledgeClawHubRisk: true } : {}),
         config: resolved.cfg,
       });
       const errors = results.filter((result) => !result.ok);
