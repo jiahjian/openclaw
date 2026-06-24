@@ -395,6 +395,7 @@ describe("renderSkills", () => {
             kind: "error",
             text: "REVIEW REQUIRED - ClawHub found suspicious behavior.",
             acknowledgeSlug: "github",
+            acknowledgeVersion: "1.2.3",
           },
           onClawHubInstall,
         }),
@@ -410,7 +411,7 @@ describe("renderSkills", () => {
     retryButton!.click();
 
     expect(onClawHubInstall).toHaveBeenCalledTimes(1);
-    expect(onClawHubInstall).toHaveBeenCalledWith("github", true);
+    expect(onClawHubInstall).toHaveBeenCalledWith("github", true, "1.2.3");
   });
 
   it("renders installed ClawHub verdicts and the local Skill Card tab", async () => {

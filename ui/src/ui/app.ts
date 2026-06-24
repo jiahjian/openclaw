@@ -648,6 +648,7 @@ export class OpenClawApp extends LitElement {
     kind: "success" | "error";
     text: string;
     acknowledgeSlug?: string;
+    acknowledgeVersion?: string;
   } | null = null;
   @state() clawhubVerdicts: Record<string, ClawHubSkillSecurityVerdict> = {};
   @state() clawhubVerdictsLoading = false;

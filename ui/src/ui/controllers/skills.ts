@@ -91,6 +91,7 @@ export type SkillsState = {
     kind: "success" | "error";
     text: string;
     acknowledgeSlug?: string;
+    acknowledgeVersion?: string;
   } | null;
   clawhubVerdicts: Record<string, ClawHubSkillSecurityVerdict>;
   clawhubVerdictsLoading: boolean;
@@ -142,6 +143,18 @@ function getClawHubTrustCodeFromError(err: unknown): string | undefined {
   }
   const code = (details as { clawhubTrustCode?: unknown }).clawhubTrustCode;
   return typeof code === "string" && code.trim() ? code : undefined;
+}
+
+function getClawHubTrustVersionFromError(err: unknown): string | undefined {
+  if (!err || typeof err !== "object" || !("details" in err)) {
+    return undefined;
+  }
+  const details = (err as { details?: unknown }).details;
+  if (!details || typeof details !== "object") {
+    return undefined;
+  }
+  const version = (details as { version?: unknown }).version;
+  return typeof version === "string" && version.trim() ? version : undefined;
 }
 
 function formatClawHubInstallMessage(message: string, warning?: string): string {
@@ -594,6 +607,7 @@ export async function installFromClawHub(
   state: SkillsState,
   slug: string,
   acknowledgeClawHubRisk = false,
+  version?: string,
 ) {
   if (!state.client || !state.connected) {
     return;
@@ -608,6 +622,7 @@ export async function installFromClawHub(
         ...skillsAgentParams(state),
         source: "clawhub",
         slug,
+        ...(version ? { version } : {}),
         ...(acknowledgeClawHubRisk ? { acknowledgeClawHubRisk: true } : {}),
       },
     );
@@ -626,6 +641,7 @@ export async function installFromClawHub(
     if (isSkillsAgentScopeCurrent(state, agentScope)) {
       const needsAcknowledgement =
         getClawHubTrustCodeFromError(err) === "clawhub_risk_acknowledgement_required";
+      const acknowledgeVersion = getClawHubTrustVersionFromError(err);
       state.clawhubInstallMessage = {
         kind: "error",
         text: formatClawHubInstallMessage(
@@ -633,6 +649,7 @@ export async function installFromClawHub(
           getClawHubTrustWarningFromError(err),
         ),
         ...(needsAcknowledgement ? { acknowledgeSlug: slug } : {}),
+        ...(needsAcknowledgement && acknowledgeVersion ? { acknowledgeVersion } : {}),
       };
     }
   } finally {

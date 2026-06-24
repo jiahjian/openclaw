@@ -815,6 +815,7 @@ describe("skill mutations", () => {
     };
     error.details = {
       clawhubTrustCode: "clawhub_risk_acknowledgement_required",
+      version: "1.2.3",
       warning: "REVIEW REQUIRED - ClawHub found suspicious behavior.",
     };
     request.mockImplementation(async (method: string) => {
@@ -839,13 +840,20 @@ describe("skill mutations", () => {
         "ClawHub requires acknowledgement before installing.\n\n" +
         "REVIEW REQUIRED - ClawHub found suspicious behavior.",
       acknowledgeSlug: "github",
+      acknowledgeVersion: "1.2.3",
     });
 
-    await installFromClawHub(state, "github", true);
+    await installFromClawHub(
+      state,
+      "github",
+      true,
+      state.clawhubInstallMessage!.acknowledgeVersion,
+    );
 
     expect(request).toHaveBeenNthCalledWith(2, "skills.install", {
       source: "clawhub",
       slug: "github",
+      version: "1.2.3",
       acknowledgeClawHubRisk: true,
     });
     expect(state.clawhubInstallMessage).toEqual({

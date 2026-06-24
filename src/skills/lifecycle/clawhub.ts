@@ -146,7 +146,7 @@ type InstallClawHubSkillResult =
       detail?: ClawHubSkillDetail;
       warning?: string;
     }
-  | { ok: false; error: string; code?: ClawHubTrustErrorCode; warning?: string };
+  | { ok: false; error: string; code?: ClawHubTrustErrorCode; version?: string; warning?: string };
 
 type UpdateClawHubSkillResult =
   | {
@@ -158,7 +158,7 @@ type UpdateClawHubSkillResult =
       targetDir: string;
       warning?: string;
     }
-  | { ok: false; error: string; code?: ClawHubTrustErrorCode; warning?: string };
+  | { ok: false; error: string; code?: ClawHubTrustErrorCode; version?: string; warning?: string };
 
 type Logger = {
   info?: (message: string) => void;
@@ -1278,7 +1278,7 @@ async function performClawHubSkillInstall(
       version = resolved.version;
       const trust = await ensureClawHubSkillTrustAcknowledged({ ...params, version });
       if (!trust.ok) {
-        return trust;
+        return { ...trust, version };
       }
       trustWarning = trust.warning;
       params.logger?.info?.(`Downloading ${params.slug}@${version} from ClawHub…`);
@@ -1310,7 +1310,7 @@ async function performClawHubSkillInstall(
         version = latestResolution.archive.version;
         const trust = await ensureClawHubSkillTrustAcknowledged({ ...params, version });
         if (!trust.ok) {
-          return trust;
+          return { ...trust, version };
         }
         trustWarning = trust.warning;
         params.logger?.info?.(`Downloading ${params.slug}@${version} from ClawHub…`);

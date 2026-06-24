@@ -120,13 +120,15 @@ function respondSkillWorkshopError(respond: RespondFn, err: unknown) {
 
 function buildClawHubTrustErrorDetails(result: {
   code?: string;
+  version?: string;
   warning?: string;
-}): { clawhubTrustCode?: string; warning?: string } | undefined {
-  if (!result.code && !result.warning) {
+}): { clawhubTrustCode?: string; version?: string; warning?: string } | undefined {
+  if (!result.code && !result.version && !result.warning) {
     return undefined;
   }
   return {
     ...(result.code ? { clawhubTrustCode: result.code } : {}),
+    ...(result.version ? { version: result.version } : {}),
     ...(result.warning ? { warning: result.warning } : {}),
   };
 }

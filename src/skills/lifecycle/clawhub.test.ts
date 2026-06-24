@@ -415,6 +415,7 @@ describe("skills-clawhub", () => {
       throw new Error("expected suspicious skill install failure");
     }
     expect(result.error).toContain("--acknowledge-clawhub-risk");
+    expect(result.version).toBe("1.0.0");
     expect(result.warning).toContain("WARNING - ClawHub found security risks");
     expect(result.warning).toContain(
       "https://clawhub.ai/acme/skills/agentreceipt/security-audit?version=1.0.0",

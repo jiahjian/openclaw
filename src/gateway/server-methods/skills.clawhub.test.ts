@@ -295,6 +295,7 @@ describe("skills gateway handlers (clawhub)", () => {
       ok: false,
       error: "ClawHub blocked this release; install was not started.",
       code: "clawhub_download_blocked",
+      version: "1.2.3",
       warning: "BLOCKED - ClawHub flagged this release as malicious",
     });
 
@@ -308,6 +309,7 @@ describe("skills gateway handlers (clawhub)", () => {
       ok: false,
       error: "ClawHub blocked this release; install was not started.",
       code: "clawhub_download_blocked",
+      version: "1.2.3",
       warning: "BLOCKED - ClawHub flagged this release as malicious",
     });
     expect(error).toEqual({
@@ -315,6 +317,7 @@ describe("skills gateway handlers (clawhub)", () => {
       message: "ClawHub blocked this release; install was not started.",
       details: {
         clawhubTrustCode: "clawhub_download_blocked",
+        version: "1.2.3",
         warning: "BLOCKED - ClawHub flagged this release as malicious",
       },
     });
@@ -331,12 +334,14 @@ describe("skills gateway handlers (clawhub)", () => {
     const { ok, error } = await callSkillsHandler("skills.install", {
       source: "clawhub",
       slug: "calendar",
+      version: "1.2.3",
       acknowledgeClawHubRisk: true,
     });
 
     expect(installSkillFromClawHubMock).toHaveBeenCalledWith({
       workspaceDir: "/tmp/workspace",
       slug: "calendar",
+      version: "1.2.3",
       force: false,
       acknowledgeClawHubRisk: true,
       config: {},

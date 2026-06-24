@@ -3555,8 +3555,8 @@ export function renderApp(state: AppViewState) {
                 },
                 onClawHubDetailOpen: (slug) => void loadClawHubDetail(state, slug),
                 onClawHubDetailClose: () => closeClawHubDetail(state),
-                onClawHubInstall: (slug, acknowledgeClawHubRisk) =>
-                  void installFromClawHub(state, slug, acknowledgeClawHubRisk),
+                onClawHubInstall: (slug, acknowledgeClawHubRisk, version) =>
+                  void installFromClawHub(state, slug, acknowledgeClawHubRisk, version),
               }),
             )
           : nothing}

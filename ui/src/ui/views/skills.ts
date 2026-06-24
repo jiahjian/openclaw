@@ -82,6 +82,7 @@ export type SkillsProps = {
     kind: "success" | "error";
     text: string;
     acknowledgeSlug?: string;
+    acknowledgeVersion?: string;
   } | null;
   onFilterChange: (next: string) => void;
   onAgentChange: (agentId: string) => void;
@@ -97,7 +98,7 @@ export type SkillsProps = {
   onClawHubQueryChange: (query: string) => void;
   onClawHubDetailOpen: (slug: string) => void;
   onClawHubDetailClose: () => void;
-  onClawHubInstall: (slug: string, acknowledgeClawHubRisk?: boolean) => void;
+  onClawHubInstall: (slug: string, acknowledgeClawHubRisk?: boolean, version?: string) => void;
 };
 
 type StatusTabDef = { id: SkillsStatusFilter; label: string };
@@ -334,6 +335,7 @@ export function renderSkills(props: SkillsProps) {
                       props.onClawHubInstall(
                         props.clawhubInstallMessage?.acknowledgeSlug ?? "",
                         true,
+                        props.clawhubInstallMessage?.acknowledgeVersion,
                       )}
                   >
                     Install anyway
