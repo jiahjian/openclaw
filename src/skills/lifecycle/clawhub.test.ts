@@ -623,7 +623,9 @@ describe("skills-clawhub", () => {
   });
 
   it("uses the owner-qualified skill name for suspicious ClawHub acknowledgements", async () => {
-    const onClawHubRisk = vi.fn(async () => false);
+    const onClawHubRisk = vi.fn<
+      NonNullable<Parameters<typeof installSkillFromClawHub>[0]["onClawHubRisk"]>
+    >(async () => false);
     fetchClawHubSkillSecurityVerdictsMock.mockResolvedValueOnce({
       schema: "clawhub.skill.security-verdicts.v1",
       items: [
@@ -656,6 +658,13 @@ describe("skills-clawhub", () => {
         packageName: "@acme/agentreceipt",
         version: "1.0.0",
       }),
+    );
+    const acknowledgementRequest = onClawHubRisk.mock.calls[0]?.[0];
+    expect(acknowledgementRequest?.warning).toContain(
+      "https://clawhub.ai/acme/skills/agentreceipt",
+    );
+    expect(acknowledgementRequest?.warning).toContain(
+      "https://clawhub.ai/acme/skills/agentreceipt/security-audit?version=1.0.0",
     );
     expect(downloadClawHubSkillArchiveUrlMock).not.toHaveBeenCalled();
   });

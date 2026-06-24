@@ -275,7 +275,7 @@ function resolveClawHubSubjectUrl(params: {
   subject: ClawHubTrustSubject;
 }): string {
   if (params.subject.kind === "skill" && params.subject.ownerHandle) {
-    return `${resolveClawHubBaseUrl(params.baseUrl)}/${encodeURIComponent(params.subject.ownerHandle)}/${encodeURIComponent(params.subject.packageName)}`;
+    return `${resolveClawHubBaseUrl(params.baseUrl)}/${encodeURIComponent(params.subject.ownerHandle)}/skills/${encodeURIComponent(params.subject.packageName)}`;
   }
   const pathRoot = params.subject.kind === "skill" ? "skills" : "plugins";
   return `${resolveClawHubBaseUrl(params.baseUrl)}/${pathRoot}/${encodeClawHubPackagePath(params.subject.packageName)}`;
