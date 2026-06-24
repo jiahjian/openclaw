@@ -131,7 +131,7 @@ export type OfficialExternalPluginCatalogProfileConfig = {
 
 /** Feed-shaped wrapper used by the bundled external plugin catalog fallback. */
 export type OfficialExternalPluginCatalogFeed = {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   id: string;
   generatedAt: string;
   sequence: number;
@@ -197,7 +197,7 @@ const OFFICIAL_CATALOG_SOURCES = [
   officialExternalPluginCatalog,
 ] as const;
 
-const OFFICIAL_EXTERNAL_CATALOG_FEED_SCHEMA_VERSION = 1;
+const SUPPORTED_OFFICIAL_EXTERNAL_CATALOG_FEED_SCHEMA_VERSIONS = new Set([1, 2]);
 export const DEFAULT_OFFICIAL_EXTERNAL_PLUGIN_CATALOG_FEED_URL =
   "https://clawhub.ai/v1/feeds/plugins";
 export const DEFAULT_OFFICIAL_EXTERNAL_PLUGIN_CATALOG_FEED_PROFILE = "clawhub-public";
@@ -238,7 +238,8 @@ export function isOfficialExternalPluginCatalogFeed(
   const sequence = raw.sequence;
   const entries = raw.entries;
   return (
-    raw.schemaVersion === OFFICIAL_EXTERNAL_CATALOG_FEED_SCHEMA_VERSION &&
+    typeof raw.schemaVersion === "number" &&
+    SUPPORTED_OFFICIAL_EXTERNAL_CATALOG_FEED_SCHEMA_VERSIONS.has(raw.schemaVersion) &&
     typeof raw.id === "string" &&
     raw.id.trim().length > 0 &&
     typeof raw.generatedAt === "string" &&
@@ -598,7 +599,7 @@ function loadHostedCatalogSnapshotResult(params: {
   }
   const raw = JSON.parse(params.snapshot.body) as unknown;
   if (!isOfficialExternalPluginCatalogFeed(raw)) {
-    throw new Error("hosted catalog snapshot did not match schema version 1");
+    throw new Error("hosted catalog snapshot did not match a supported schema version");
   }
   return {
     source: "hosted-snapshot",
@@ -808,7 +809,7 @@ export async function loadHostedOfficialExternalPluginCatalogEntries(params?: {
     const raw = JSON.parse(body) as unknown;
     if (!isOfficialExternalPluginCatalogFeed(raw)) {
       return await snapshotOrBundledFallbackResult({
-        error: "hosted catalog feed did not match schema version 1",
+        error: "hosted catalog feed did not match a supported schema version",
         snapshotStore,
         url: url.href,
         metadata,

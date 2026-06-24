@@ -71,13 +71,22 @@ describe("official external plugin catalog", () => {
         sequence: 1,
         entries: [],
       }),
+    ).toBe(true);
+    expect(
+      isOfficialExternalPluginCatalogFeed({
+        schemaVersion: 3,
+        id: "openclaw-official-external-plugins",
+        generatedAt: "2026-06-22T00:00:00.000Z",
+        sequence: 1,
+        entries: [],
+      }),
     ).toBe(false);
   });
 
   it("keeps unsupported versioned feed wrappers out of legacy catalog parsing", () => {
     expect(
       parseOfficialExternalPluginCatalogEntries({
-        schemaVersion: 2,
+        schemaVersion: 3,
         id: "future-feed",
         generatedAt: "2026-06-22T00:00:00.000Z",
         sequence: 1,
@@ -176,7 +185,7 @@ describe("official external plugin catalog", () => {
 
   it("accepts the live ClawHub feed source ref by default", async () => {
     const body = JSON.stringify({
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: "clawhub-official",
       generatedAt: "2026-06-23T09:38:53.000Z",
       sequence: 4,
@@ -504,7 +513,7 @@ describe("official external plugin catalog", () => {
     expect(result.source).toBe("bundled-fallback");
     expect(result.entries.length).toBe(listOfficialExternalPluginCatalogEntries().length);
     if (result.source === "bundled-fallback") {
-      expect(result.error).toContain("schema version 1");
+      expect(result.error).toContain("supported schema version");
       expect(result.metadata?.checksum).toMatch(/^sha256:[0-9a-f]{64}$/);
     }
   });
