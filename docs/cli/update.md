@@ -93,6 +93,7 @@ converge.
 ```bash
 openclaw update repair
 openclaw update repair --channel beta
+openclaw update repair --acknowledge-clawhub-risk
 openclaw update repair --json
 ```
 
@@ -103,6 +104,8 @@ Options:
 - `--json`: print machine-readable finalization JSON.
 - `--timeout <seconds>`: timeout for repair steps (default `1800`).
 - `--yes`: skip confirmation prompts.
+- `--acknowledge-clawhub-risk`: after reviewing ClawHub trust warnings, allow
+  repair-time plugin convergence to continue without an interactive prompt.
 - `--no-restart`: accepted for update command parity; repair never restarts the
   Gateway.
 
