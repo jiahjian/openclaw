@@ -1165,6 +1165,15 @@ async function scanTranscriptFile(params: {
         // above.
         entry.costTotal = undefined;
         entry.costBreakdown = undefined;
+      } else if (
+        isModelPricingKnown(cost) &&
+        entry.costTotal === 0 &&
+        computeUsageTokenTotals(entry.usage).totalTokens > 0
+      ) {
+        // Pricing IS known but the API returned cost.total: 0 (e.g. DeepSeek V4).
+        // Re-estimate from token counts instead of accepting the API's $0. (#97047)
+        entry.costTotal = estimateUsageCost({ usage: entry.usage, cost });
+        entry.costBreakdown = undefined;
       } else if (entry.costTotal === undefined) {
         // Fill in missing cost estimates.
         entry.costTotal = estimateUsageCost({ usage: entry.usage, cost });
