@@ -368,6 +368,8 @@ export function buildApprovalPendingMessage(params: {
   approvalSlug: string;
   approvalId: string;
   allowedDecisions?: readonly ExecApprovalDecision[];
+  ask?: string | null;
+  allowAlwaysPersistenceKind?: string | null;
   command: string;
   cwd: string | undefined;
   host: "gateway" | "node";
@@ -401,9 +403,15 @@ export function buildApprovalPendingMessage(params: {
   );
   lines.push(`Reply with: /approve ${params.approvalSlug} ${decisionText}`);
   if (!allowedDecisions.includes("allow-always")) {
-    lines.push(
-      "The effective approval policy requires approval every time, so Allow Always is unavailable.",
-    );
+    if (params.allowAlwaysPersistenceKind === "one-shot" && params.ask !== "always") {
+      lines.push(
+        "Allow Always is unavailable because this command cannot be saved and reused (shell redirection or operators make it one-shot).",
+      );
+    } else {
+      lines.push(
+        "The effective approval policy requires approval every time, so Allow Always is unavailable.",
+      );
+    }
   }
   lines.push("If the short code is ambiguous, use the full id in /approve.");
   return lines.join("\n");
