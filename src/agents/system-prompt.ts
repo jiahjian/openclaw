@@ -25,6 +25,7 @@ import type { SubagentDelegationMode } from "../config/types.agent-defaults.js";
 import type { MemoryCitationsMode } from "../config/types.memory.js";
 import { buildMemoryPromptSection } from "../plugins/memory-state.js";
 import type { AgentPromptSurfaceKind } from "../plugins/types.js";
+import { isCronRunSessionKey } from "../sessions/session-key-utils.js";
 import { listDeliverableMessageChannels } from "../utils/message-channel.js";
 import type { ActiveProcessSessionReference } from "./bash-process-references.js";
 import type { BootstrapMode } from "./bootstrap-mode.js";
@@ -1395,10 +1396,27 @@ export function buildRuntimeLine(
   defaultThinkLevel?: ThinkLevel,
 ): string {
   const normalizedRuntimeCapabilities = normalizePromptCapabilityIds(runtimeCapabilities);
+  // For canonical cron-run session keys (agent:<id>:cron:<job>:run:<uuid>),
+  // strip the volatile per-run suffix from both the session key and the
+  // session id so that the Runtime line stays byte-stable across cron
+  // invocations. A per-run UUID in the cached system prefix breaks prompt
+  // caching for everything after it — including the tool catalog.
+  // See: https://github.com/openclaw/openclaw/issues/96677
+  const isCronRun = isCronRunSessionKey(runtimeInfo?.sessionKey);
+  const runtimeSessionKey = runtimeInfo?.sessionKey
+    ? sanitizeForPromptLiteral(
+        isCronRun ? runtimeInfo.sessionKey.replace(/:run:[^\s|]*$/g, "") : runtimeInfo.sessionKey,
+      )
+    : "";
+  const runtimeSessionId = runtimeInfo?.sessionId
+    ? isCronRun
+      ? ""
+      : `sessionId=${sanitizeForPromptLiteral(runtimeInfo.sessionId)}`
+    : "";
   return `Runtime: ${[
     runtimeInfo?.agentId ? `agent=${runtimeInfo.agentId}` : "",
-    runtimeInfo?.sessionKey ? `session=${sanitizeForPromptLiteral(runtimeInfo.sessionKey)}` : "",
-    runtimeInfo?.sessionId ? `sessionId=${sanitizeForPromptLiteral(runtimeInfo.sessionId)}` : "",
+    runtimeSessionKey ? `session=${runtimeSessionKey}` : "",
+    runtimeSessionId,
     runtimeInfo?.host ? `host=${runtimeInfo.host}` : "",
     runtimeInfo?.repoRoot ? `repo=${runtimeInfo.repoRoot}` : "",
     runtimeInfo?.os

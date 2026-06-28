@@ -1303,6 +1303,33 @@ describe("buildAgentSystemPrompt", () => {
     expect(line).toContain("thinking=low");
   });
 
+  it("strips volatile :run: suffix and sessionId for cron-run keys (#96677)", () => {
+    const line = buildRuntimeLine({
+      agentId: "main",
+      sessionKey: "agent:main:cron:daily-audit:run:e3f4a5b6-1234-5678-9abc-def012345678",
+      sessionId: "e3f4a5b6-1234-5678-9abc-def012345678",
+      host: "gateway",
+    });
+    // The :run:<uuid> segment must be stripped from session= so the
+    // Runtime line is byte-stable across cron invocations.
+    expect(line).toContain("session=agent:main:cron:daily-audit");
+    expect(line).not.toContain(":run:");
+    expect(line).not.toContain("e3f4a5b6");
+    // sessionId must also be omitted for cron-run keys — it duplicates
+    // the per-run UUID already stripped from the session key.
+    expect(line).not.toContain("sessionId=");
+  });
+
+  it("preserves non-cron session key with :run: as data unchanged (#96677)", () => {
+    // Non-cron keys containing ":run:" as a literal substring must be
+    // rendered byte-for-byte without alteration.
+    const line = buildRuntimeLine({
+      sessionKey: "agent:main:channel:slack:C01234:run:ops",
+    });
+    expect(line).toContain("session=agent:main:channel:slack:C01234:run:ops");
+    expect(line).toContain(":run:");
+  });
+
   it("renders extra system prompt exactly once", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/openclaw",
