@@ -71,6 +71,11 @@ export function normalizeReplyPayload(
     const hasLeadingSilentToken = startsWithSilentToken(text, silentToken);
     if (hasLeadingSilentToken) {
       text = stripLeadingSilentToken(text, silentToken);
+    } else if (stripLeadingSilentToken(text, silentToken) !== text) {
+      // The token is at the start of text but separated from content by
+      // newlines or whitespace — the glued-attached check above misses
+      // this case. E.g. "NO_REPLY\\n\\nWait — I should respond." (#103735)
+      text = stripLeadingSilentToken(text, silentToken);
     }
     if (hasLeadingSilentToken || text.toLowerCase().includes(silentToken.toLowerCase())) {
       text = stripSilentToken(text, silentToken);
