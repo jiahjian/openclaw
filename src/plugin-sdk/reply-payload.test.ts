@@ -116,6 +116,83 @@ describe("sendPayloadWithChunkedTextAndMedia", () => {
 });
 
 describe("sendTextMediaPayload", () => {
+  it("reports each completed text chunk before a later chunk fails", async () => {
+    const sendText = vi
+      .fn()
+      .mockResolvedValueOnce({ channel: "test", messageId: "ab" })
+      .mockRejectedValueOnce(new Error("second chunk failed"));
+    const onDeliveryResult = vi.fn();
+
+    await expect(
+      sendTextMediaPayload({
+        channel: "test",
+        ctx: {
+          cfg: {},
+          to: "target",
+          text: "",
+          payload: { text: "abcd" },
+          onDeliveryResult,
+        },
+        adapter: {
+          textChunkLimit: 2,
+          chunker: () => ["ab", "cd"],
+          sendText,
+        },
+      }),
+    ).rejects.toThrow("second chunk failed");
+
+    expect(onDeliveryResult).toHaveBeenCalledTimes(1);
+    expect(onDeliveryResult).toHaveBeenCalledWith({ channel: "test", messageId: "ab" });
+  });
+
+  it("does not report callback-aware text sends twice", async () => {
+    const onDeliveryResult = vi.fn();
+    const result = { channel: "test", messageId: "m1" };
+
+    await sendTextMediaPayload({
+      channel: "test",
+      ctx: {
+        cfg: {},
+        to: "target",
+        text: "",
+        payload: { text: "hello" },
+        onDeliveryResult,
+      },
+      adapter: {
+        sendText: async (ctx) => {
+          await ctx.onDeliveryResult?.(result);
+          return result;
+        },
+      },
+    });
+
+    expect(onDeliveryResult).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report callback-aware media sends twice", async () => {
+    const onDeliveryResult = vi.fn();
+    const result = { channel: "test", messageId: "m1" };
+
+    await sendTextMediaPayload({
+      channel: "test",
+      ctx: {
+        cfg: {},
+        to: "target",
+        text: "",
+        payload: { mediaUrl: "https://example.com/a.png" },
+        onDeliveryResult,
+      },
+      adapter: {
+        sendMedia: async (ctx) => {
+          await ctx.onDeliveryResult?.(result);
+          return result;
+        },
+      },
+    });
+
+    expect(onDeliveryResult).toHaveBeenCalledTimes(1);
+  });
+
   it("uses an implicit single-use reply only for the first text chunk", async () => {
     const sendText = vi.fn(async ({ text }) => ({ channel: "test", messageId: text }));
 
@@ -258,6 +335,39 @@ describe("normalizeOutboundReplyPayload", () => {
       replyToId: undefined,
     });
   });
+
+  it("normalizes portable location and video-note hints", () => {
+    expect(
+      normalizeOutboundReplyPayload({
+        location: {
+          latitude: 48.858844,
+          longitude: 2.294351,
+          name: "  Eiffel Tower ",
+          address: " Champ de Mars ",
+        },
+        videoAsNote: true,
+      }),
+    ).toMatchObject({
+      location: {
+        latitude: 48.858844,
+        longitude: 2.294351,
+        name: "Eiffel Tower",
+        address: "Champ de Mars",
+      },
+      videoAsNote: true,
+    });
+  });
+
+  it.each(["source", "isLive", "caption"])(
+    "rejects unsupported outbound location %s semantics from loose payloads",
+    (field) => {
+      expect(() =>
+        normalizeOutboundReplyPayload({
+          location: { latitude: 1, longitude: 2, [field]: "unsupported" },
+        }),
+      ).toThrow(`${field} is not supported`);
+    },
+  );
 
   it("keeps the normalized deliverer from forwarding trustedLocalMedia", async () => {
     const handler = vi.fn(async () => {});
