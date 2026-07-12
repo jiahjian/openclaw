@@ -63,11 +63,13 @@ export function loadMergedBundleMcpConfig(params: {
   const configuredMcp = normalizeConfiguredMcpServers(params.cfg?.mcp?.servers);
   const disabledConfiguredNames = new Set(
     Object.entries(configuredMcp)
-      .filter(([, server]) => server.enabled === false)
+      .filter(([, server]) => server.enabled === false || server.disabled === true)
       .map(([name]) => name),
   );
   const enabledConfiguredMcp = Object.fromEntries(
-    Object.entries(configuredMcp).filter(([, server]) => server.enabled !== false),
+    Object.entries(configuredMcp).filter(
+      ([, server]) => server.enabled !== false && server.disabled !== true,
+    ),
   );
   const enabledBundleMcp = Object.fromEntries(
     Object.entries(bundleMcp.config.mcpServers).filter(

@@ -69,6 +69,10 @@ export function canonicalizeConfiguredMcpServer(
     next.clientKey = next.client_key;
     delete next.client_key;
   }
+  if (next.disabled === true && typeof next.enabled !== "boolean") {
+    next.enabled = false;
+    delete next.disabled;
+  }
   return next;
 }
 

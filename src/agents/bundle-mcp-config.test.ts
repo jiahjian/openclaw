@@ -81,14 +81,14 @@ describe("loadMergedBundleMcpConfig", () => {
     expect(merged.config.mcpServers).not.toHaveProperty("disabledDocs");
   });
 
-  it("lets disabled OpenClaw MCP servers tombstone bundle defaults with the same name", () => {
+  it("lets disabled:true OpenClaw MCP servers tombstone bundle defaults", () => {
     const merged = loadMergedBundleMcpConfig({
       workspaceDir: "/workspace",
       cfg: {
         mcp: {
           servers: {
             bundleProbe: {
-              enabled: false,
+              disabled: true,
             },
           },
         },
@@ -96,5 +96,24 @@ describe("loadMergedBundleMcpConfig", () => {
     });
 
     expect(merged.config.mcpServers).not.toHaveProperty("bundleProbe");
+  });
+
+  it("keeps MCP servers with disabled:true out of embedded runtimes", () => {
+    const merged = loadMergedBundleMcpConfig({
+      workspaceDir: "/workspace",
+      cfg: {
+        mcp: {
+          servers: {
+            disabledDocs: {
+              disabled: true,
+              command: "node",
+              args: ["docs.mjs"],
+            },
+          },
+        },
+      },
+    });
+
+    expect(merged.config.mcpServers).not.toHaveProperty("disabledDocs");
   });
 });
