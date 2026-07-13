@@ -125,6 +125,12 @@ function pageContext(
         state: { result: null, modelOverrides: {} },
         subscribe,
       } as unknown as ApplicationContext["sessions"]),
+    agentSelection: {
+      state: { selectedId: "main", scopeId: "main" },
+      set: vi.fn(),
+      setScope: vi.fn(),
+      subscribe,
+    },
     channels: { subscribe },
     runtimeConfig: { subscribe },
   } as unknown as ApplicationContext;
@@ -148,6 +154,7 @@ describe("AgentsPage gateway lifecycle", () => {
       selectedAgentId: "main",
       error: null,
     };
+    page.agentsSelectedId = "main";
     page.context = { gateway: currentGateway } as unknown as ApplicationContext;
     page.willUpdate(new Map([["routeData", undefined]]));
 
