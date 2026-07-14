@@ -85,6 +85,7 @@ import {
 } from "./io.observe-recovery.js";
 import { resolveConfigObserveSuspiciousReasons } from "./io.observe-suspicious.js";
 import { retainGeneratedOwnerDisplaySecret } from "./io.owner-display-secret.js";
+import { checkCommentLossWarning } from "./json5-comments.js";
 import {
   collectChangedPaths,
   createMergePatch,
@@ -2559,7 +2560,8 @@ export function createConfigIO(
     );
     const json = JSON.stringify(stampedOutputConfig, null, 2).trimEnd().concat("\n");
     const nextHash = hashConfigRaw(json);
-    const previousHash = resolveConfigSnapshotHash(snapshot);
+    const previousHash = resolveConfigSnapshotHash(snapshot),
+      cw = checkCommentLossWarning(snapshot.raw, configPath);
     const changedPathCount = changedPaths?.size;
     const previousBytes =
       typeof snapshot.raw === "string" ? Buffer.byteLength(snapshot.raw, "utf-8") : null;
@@ -2704,6 +2706,10 @@ export function createConfigIO(
         });
       });
     await preCommitRuntimePreflight(resolveRuntimePreflightSourceConfig(stampedOutputConfig));
+
+    if (cw && !options.skipOutputLogs) {
+      deps.logger?.warn?.(cw);
+    }
 
     const pluginInstallConfigMigration =
       ensureShippedPluginInstallConfigRecordsMigratedForWrite(snapshot);

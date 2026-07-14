@@ -21,6 +21,7 @@ import {
 import { restoreEnvVarRefs } from "./env-preserve.js";
 import { resolveConfigEnvVars } from "./env-substitution.js";
 import { GATEWAY_CONFIG_SELECTION_ENV_KEYS } from "./gateway-env-selection.js";
+import { checkCommentLossWarning } from "./json5-comments.js";
 import {
   ConfigIncludeError,
   hashConfigIncludeRaw,
@@ -782,6 +783,10 @@ async function tryWriteSingleTopLevelIncludeMutation(params: {
     throw new ConfigMutationConflictError("included config changed while preparing write", {
       currentHash: hashConfigIncludeRaw(includeRawAtCommit),
     });
+  }
+  const icw = checkCommentLossWarning(previousIncludeRaw, expectedIncludeTarget);
+  if (icw && !params.writeOptions?.skipOutputLogs) {
+    console.warn(icw);
   }
   await writeRootBoundJsonFile({
     configPath: params.snapshot.path,

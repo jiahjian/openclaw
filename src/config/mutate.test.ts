@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
+import { checkCommentLossWarning } from "./json5-comments.js";
 import { initializePublishedConfigRuntimeEnv, prepareConfigRuntimeEnv } from "./config-env-vars.js";
 import { hashConfigIncludeRaw } from "./includes.js";
 import type { ConfigWriteOptions } from "./io.js";
@@ -2552,4 +2553,104 @@ describe("config mutate helpers", () => {
       setRuntimeConfigSnapshotRefreshHandler(null);
     }
   });
+
+  it("warns when an included config file has JSON5 comments that will be lost", async () => {
+    const home = await suiteRootTracker.make("include-warn");
+    const configPath = path.join(home, ".openclaw", "openclaw.json");
+    const pluginsPath = path.join(home, ".openclaw", "config", "plugins.json5");
+    const includeRaw = `{\n  // plugin config with comments\n  "entries": {}\n}\n`;
+    await fs.mkdir(path.dirname(pluginsPath), { recursive: true });
+    await fs.writeFile(pluginsPath, includeRaw, "utf-8");
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ plugins: { $include: "./config/plugins.json5" } }, null, 2)}\n`,
+      "utf-8",
+    );
+
+    const snapshot = createSnapshot({
+      hash: "hash-include-warn",
+      path: configPath,
+      parsed: { plugins: { $include: "./config/plugins.json5" } },
+      sourceConfig: { plugins: { entries: {} } },
+    });
+    ioMocks.readConfigFileSnapshotForWrite.mockResolvedValue({
+      snapshot,
+      writeOptions: {
+        expectedConfigPath: configPath,
+        includeFileHashesForWrite: { [pluginsPath]: hashConfigIncludeRaw(includeRaw) },
+        assertConfigPathForWrite: allowConfigPathWrite,
+        includeFileTargetsForWrite: { [pluginsPath]: pluginsPath },
+      },
+    });
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      await replaceConfigFile({
+        baseHash: snapshot.hash,
+        nextConfig: { plugins: { entries: { demo: { enabled: true } } } },
+        writeOptions: { skipRuntimeSnapshotRefresh: true },
+        io: {
+          readConfigFileSnapshotForWrite: ioMocks.readConfigFileSnapshotForWrite,
+          writeConfigFile: ioMocks.writeConfigFile,
+        },
+      });
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0]![0]).toMatch(
+        /Config write will strip JSON5 comments from/,
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it("does not emit console.warn for include comment loss when skipOutputLogs is set", async () => {
+    const home = await suiteRootTracker.make("include-skip");
+    const configPath = path.join(home, ".openclaw", "openclaw.json");
+    const pluginsPath = path.join(home, ".openclaw", "config", "plugins.json5");
+    const includeRaw = `{\n  // plugin config with comments\n  "entries": {}\n}\n`;
+    await fs.mkdir(path.dirname(pluginsPath), { recursive: true });
+    await fs.writeFile(pluginsPath, includeRaw, "utf-8");
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify({ plugins: { $include: "./config/plugins.json5" } }, null, 2)}\n`,
+      "utf-8",
+    );
+
+    const snapshot = createSnapshot({
+      hash: "hash-include-skip",
+      path: configPath,
+      parsed: { plugins: { $include: "./config/plugins.json5" } },
+      sourceConfig: { plugins: { entries: {} } },
+    });
+    ioMocks.readConfigFileSnapshotForWrite.mockResolvedValue({
+      snapshot,
+      writeOptions: {
+        expectedConfigPath: configPath,
+        includeFileHashesForWrite: { [pluginsPath]: hashConfigIncludeRaw(includeRaw) },
+        assertConfigPathForWrite: allowConfigPathWrite,
+        includeFileTargetsForWrite: { [pluginsPath]: pluginsPath },
+      },
+    });
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    try {
+      await replaceConfigFile({
+        baseHash: snapshot.hash,
+        nextConfig: { plugins: { entries: { demo: { enabled: true } } } },
+        writeOptions: { skipOutputLogs: true, skipRuntimeSnapshotRefresh: true },
+        io: {
+          readConfigFileSnapshotForWrite: ioMocks.readConfigFileSnapshotForWrite,
+          writeConfigFile: ioMocks.writeConfigFile,
+        },
+      });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
 });
