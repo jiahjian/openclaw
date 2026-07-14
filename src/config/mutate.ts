@@ -42,6 +42,7 @@ import {
   resolveManagedUnsetPathsForWrite,
   resolveWriteEnvSnapshotForPath,
 } from "./io.write-prepare.js";
+import { checkCommentLossWarning } from "./json5-comments.js";
 import { ConfigMutationConflictError } from "./mutation-conflict.js";
 import type { ConfigMutationBase } from "./mutation-types.js";
 import { assertConfigWriteAllowedInCurrentMode } from "./nix-mode-write-guard.js";
@@ -774,6 +775,12 @@ async function tryWriteSingleTopLevelIncludeMutation(params: {
   }
   const committedIncludeRaw = formatJsonFileValue(includedValueToWrite);
   const committedIncludeHash = hashConfigIncludeRaw(committedIncludeRaw);
+  checkCommentLossWarning(
+    previousIncludeRaw,
+    expectedIncludeTarget,
+    params.writeOptions?.warn,
+    params.writeOptions?.skipOutputLogs,
+  );
   const callerPreCommit = params.writeOptions?.preCommitRuntimePreflight;
   assertConfigPathForWrite();
   await assertRootConfigStillMatchesSnapshot(params.snapshot);

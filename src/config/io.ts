@@ -159,7 +159,6 @@ export {
   registerManagedRuntimeConfigWriteOwner,
 };
 
-// Re-export for backwards compatibility
 export { CircularIncludeError, ConfigIncludeError } from "./includes.js";
 export { MissingEnvVarError } from "./env-substitution.js";
 export { resolveShellEnvExpectedKeys } from "./shell-env-expected-keys.js";
@@ -255,6 +254,7 @@ export type ConfigWriteOptions = {
    * Useful when the caller wants machine-readable output only (--json mode).
    */
   skipOutputLogs?: boolean;
+  warn?: (msg: string) => void;
   /**
    * Runtime reload intent for observers that react to committed config writes.
    * Omitted means the observer should use its normal reload plan.

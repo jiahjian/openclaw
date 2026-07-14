@@ -3702,6 +3702,33 @@ describe("config io write", () => {
       });
     });
 
+    it("uses deps.logger.warn for main config comment loss warnings", async () => {
+      await withSuiteHome(async (home) => {
+        const configPath = path.join(home, ".openclaw", "openclaw.json");
+        await fs.mkdir(path.dirname(configPath), { recursive: true });
+
+        const configWithComments = `{
+  // a line comment
+  "gateway": { "mode": "local" }
+}
+`;
+        await fs.writeFile(configPath, configWithComments, "utf-8");
+
+        const loggerWarn = vi.fn();
+        const optionsWarn = vi.fn();
+        const io = createConfigIO({
+          env: { OPENCLAW_TEST_FAST: "1" } as NodeJS.ProcessEnv,
+          homedir: () => home,
+          logger: { warn: loggerWarn, error: vi.fn() },
+        });
+
+        await io.writeConfigFile({ gateway: { mode: "local" } }, { warn: optionsWarn });
+
+        expect(loggerWarn).toHaveBeenCalledTimes(1);
+        expect(loggerWarn.mock.calls[0]![0]).toMatch(/Config write will strip JSON5 comments/);
+      });
+    });
+
     it("does not warn about JSON5 comment loss when the write is rejected", async () => {
       await withSuiteHome(async (home) => {
         const configPath = path.join(home, ".openclaw", "openclaw.json");
